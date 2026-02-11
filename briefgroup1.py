@@ -1,4 +1,6 @@
+# ========================================================================================================================
 import mysql.connector
+
 maconnexion= mysql.connector.connect(
     host="localhost",
     user="root",
@@ -8,6 +10,9 @@ maconnexion= mysql.connector.connect(
 if maconnexion.is_connected():
     print(f"Connecte avec succes a la base de donne {maconnexion.database}")
     print("---------------------------------------------------------------")
+
+#==========================================================================================================================
+
 
 def menu():
     print("1-Ajouter un produit")
@@ -19,40 +24,40 @@ def menu():
     print("7-Quitter")
     print("---------------------------------------------------------------")
 
+#==========================================================================================================================
 
 
 def Ajout_Produit(nom,prix,quantite_initiale,id_categorie):
+
     cursor=maconnexion.cursor()
+
     query=""" insert into Produits(nom,prix,quantite_initiale,id_categorie) values (%s,%s,%s,%s)"""
+
     cursor.execute(query,(nom,prix,quantite_initiale,id_categorie))
+
     maconnexion.commit()
-    print(f"le produit{nom} ajoute avec succes ")
+
+    print(f"le produit {nom} ajoute avec succes ")
     print("---------------------------------------------------------------")
     cursor.close()
+
+#==========================================================================================================================
 
 
 def Liste_Produit():
      cursor=maconnexion.cursor()
-     query=""" Select p.nom,p.prix,p.quantite_initiale,c.nom from Produits as p join Categories as c on p.id_categorie=c.id_categorie group by p.nom,p.prix,p.quantite_initiale,c.nom"""
+
+     query=""" Select p.nom,p.prix,p.quantite_initiale,c.nom from Produits as p join Categories as c on 
+     p.id_categorie=c.id_categorie group by p.nom,p.prix,p.quantite_initiale,c.nom"""
+
      cursor.execute(query)
+
      for maligne in cursor.fetchall():
           print(maligne)
           print("---------------------------------------------------------------")
           cursor.close()
 
-# def Mise_A_Jour_Stock(nom,quantite_initiale):
-#      cursor=maconnexion.cursor()
-#      update=[]    
-#      if quantite_initiale:
-#         update.append(f"quantite_initiale='{quantite_initiale}'")
-#         if update:
-#             query=f"""Update Produits set {',' .join(update)}"""
-#             cursor.execute(query)
-#             maconnexion.commit()
-#             print(f"la quantite {nom} est mise a jour avec succes") 
-#             print("---------------------------------------------------------------")
-#             cursor.close()
-
+#==========================================================================================================================
 
 
 def Mise_A_Jour_Stock(nom, quantite_initiale):
@@ -85,35 +90,66 @@ def Mise_A_Jour_Stock(nom, quantite_initiale):
 
     cursor.close()
 
+#==========================================================================================================================
 
 
 def Recherche_Produit():
      nom=input(f"Quelle produit voulez-vous rechercher:").strip()
      print("---------------------------------------------------------------")
+
      cursor=maconnexion.cursor()
+
      query="""Select * from Produits where nom= %s"""
+
      cursor.execute(query,(nom,))
+
      resultat= cursor.fetchall()
+
      if not resultat :
           print(f"Le produit{nom} n'est pas enregestre dans les produits")
           print("---------------------------------------------------------------")
+
      else:     
         for maligne in resultat:
             print(maligne)
             print("---------------------------------------------------------------")
             cursor.close()
 
+#==========================================================================================================================
+
 
 def Supprime_Produit():
-    nom=input(f"Quelle Produit Voulez-vous supprimer: ").strip()
-    print("---------------------------------------------------------------")
-    cursor=maconnexion.cursor()
-    query="""Delete from Produits where nom=%s"""
-    cursor.execute(query,(nom,))
-    maconnexion.commit()
-    print(f"Le produit {nom} est supprime avec succes")
-    print("---------------------------------------------------------------")
-    cursor.close()
+    while True:
+        nom=input(f"Quelle Produit Voulez-vous supprimer: ").strip()
+        print("---------------------------------------------------------------")
+
+        cursor=maconnexion.cursor()
+
+        requete="""Select * from Produits where nom=%s"""
+
+        cursor.execute(requete,(nom,))
+
+        mavariable=cursor.fetchall()
+        
+        if not mavariable  :
+            print("le produit n'existe pas")
+            print("-------------------------------------------------------------------")
+            break
+
+        else:     
+            query="""Delete from Produits where nom=%s"""
+
+            cursor.execute(query,(nom,))
+
+            maconnexion.commit()
+
+            print(f"Le produit {nom} est supprime avec succes")
+            print("---------------------------------------------------------------")
+
+            cursor.close()
+            break
+
+#==========================================================================================================================
 
 def menu_dashboard():
     print("1-Afficher le produit le plus cher")
@@ -121,58 +157,118 @@ def menu_dashboard():
     print("3-Nombre de produits par categories")
     print("---------------------------------------------------------------")
 
+#==========================================================================================================================
+
+
 def Produit_plus_Cher():  
+     nom=0
      cursor=maconnexion.cursor()
-     query="""Select Max(prix)as Prix_Max From Produits """
-     cursor.execute(query)
-     for malign in cursor.fetchall():
-          print(malign)
-          print("---------------------------------------------------------------")  
-          cursor.close()
+
+     query="""Select nom,Max(prix)as Prix_Max From Produits where nom = %s """
+
+     cursor.execute(query,(nom,))
+
+     maligne = cursor.fetchone()
+     nom=maligne[1]
+     print(maligne)
+     print("---------------------------------------------------------------")  
+     cursor.close()
+
+#==========================================================================================================================
+
 
 def Valeur_Totale_Stock():
+     
      cursor=maconnexion.cursor()
+
      query="""Select sum(prix * quantite_initiale) as prixTotal from Produits """
+
      cursor.execute(query)
+
      for maligne in cursor.fetchall():
+          
           print(maligne)
           print("---------------------------------------------------------------")
           cursor.close()
+
+#==========================================================================================================================
 
 def Nombre_Produits_Par_Categories():
+     
      cursor=maconnexion.cursor()
+
      query="""select  count(p.id_produit),c.nom from Categories as c 
      join Produits as p on p.id_categorie=c.id_categorie group by c.nom  """
+
      cursor.execute(query)
+
      for maligne in cursor.fetchall():
+          
           print(maligne)
           print("---------------------------------------------------------------")
           cursor.close()
 
+#==========================================================================================================================
+
+
 def dashboard():
+     
      menu_dashboard()
+
      print("---------------------------------------------------------------")
      choixdashboard=(input("Donnez votre choix: ")).strip()
+
      if choixdashboard=="1":
           print("---------------------------------------------------------------")  
           print("Le produit le plus cher est :")
           Produit_plus_Cher( )
           print("---------------------------------------------------------------")
+
      elif choixdashboard=="2":
           print("---------------------------------------------------------------") 
           print(f"La valeur totale financiere de tout le stock est :") 
           Valeur_Totale_Stock() 
           print("---------------------------------------------------------------")  
+
      elif choixdashboard=="3":       
           print("---------------------------------------------------------------") 
           print("Le Nombre de produits par categories est :")
           Nombre_Produits_Par_Categories()
           print("---------------------------------------------------------------")
+
      else:
           print("choix inconnu retour au menu")
           print("---------------------------------------------------------------")
 
+
+#==========================================================================================================================
+
+
 def main():
+        while True:
+            print("Veuillez vous authentifier")
+            email = input("Email : ")
+            password = input("Mot de passe : ")
+
+            
+            cursor=maconnexion.cursor()
+            query="""Select u.nom, u.prenom, c.email,c.password, cu.dateconnect from Utilisateurs as u 
+            join Connect_Users as cu on u.id_user=cu.id_user
+            join Connections as c on c.id_connect=cu.id_connect where email=%s and password=%s  """
+            cursor.execute(query,(email,password))
+            ma = cursor.fetchone()
+            if ma is None:
+                print(f" Erreur d'authentification, Veuillez saisir les bons identifiants")
+                print("---------------------------------------------------------------")
+  
+            else: 
+                nom=ma[0]
+                prenom=ma[1]
+                print(f"Connexion Reussie, Bienvenue {nom} {prenom}  ")
+                print("---------------------------------------------------------------")
+                break
+        
+
         while True:
              try:
     
@@ -200,9 +296,9 @@ def main():
                 elif choixmenu==2:    
                     print("Voici la liste des Produits")
                     Liste_Produit()
+
                                 
                 elif choixmenu==3:
-                    
                     Liste_Produit()
                     nom=input(f"Quelle est le nom du produit a mettre a jour: ").strip()
                     while True:
@@ -212,22 +308,27 @@ def main():
                                 print("---------------------------------------------------------------")
                                 break
                             else: 
-                                quantite_initiale=float(input("Quelle est la quantite restante: "))
+                                quantite_initiale=float(input("Quelle est la quantite : "))
                                 Mise_A_Jour_Stock(nom,quantite_initiale)
                                 break
+
+
                        
                 elif choixmenu==4:
                     Recherche_Produit()
 
+
                 elif choixmenu==5:
-                    Supprime_Produit()   
+                    Supprime_Produit()  
+
 
                 elif choixmenu==6:
                      dashboard()
+
+
                 elif choixmenu==7:
                      print("Au revoir")
                      print("Fin du programme")
-                     
                      print("---------------------------------------------------------------") 
                      break   
                 else:
