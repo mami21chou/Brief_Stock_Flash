@@ -16,6 +16,7 @@ if maconnexion.is_connected():
 
 
 def Inscription():
+    
     nom = input ("Donnez votre nom: ")
     prenom= input("Donnez votre prenom: ")
     adresse = input("Donnez votre adresse: ")
@@ -25,36 +26,44 @@ def Inscription():
     hashed = bcrypt.hashpw(password, bcrypt.gensalt(14))
     if bcrypt.checkpw(password, hashed):
         print("Felicitations Vous etes bien inscrit")
+        cursor=maconnexion.cursor()
+        query="""Insert into Utilisateurs(nom,prenom,adresse,telephone,email,password) values (%s,%s,%s,%s,%s,%s)"""
+        cursor.execute(query,(nom,prenom,adresse,telephone,email,hashed))
+        maconnexion.commit()    
+        connect()
     else:
         print("Inscription Refusee")
-
-    cursor=maconnexion.cursor()
-    query="""Insert into Utilisateurs(nom,prenom,adresse,telephone,email,password) values (%s,%s,%s,%s,%s,%s)"""
-    cursor.execute(query,(nom,prenom,adresse,telephone,email,hashed))
-    maconnexion.commit()
+           
+    
 
 def connect():
+  
   while True:
         print("Veuillez vous authentifier")
         email = input("Email : ")
         password = input("Mot de passe : ").encode()
-        
+   
         cursor=maconnexion.cursor()
         query="""Select u.nom, u.prenom, u.email,u.password from Utilisateurs as u 
-        where email=%s   """
+        where email=%s """
         cursor.execute(query,(email,))
         ma = cursor.fetchone()
         if ma is None:
-            print(f" Erreur d'authentification, Veuillez saisir les bons identifiants")
+            print("Email incorrect")
             print("---------------------------------------------------------------")
+        else:
+            nom,prenom,email,hashed=ma
 
-        else: 
-            nom=ma[0]
-            prenom=ma[1]
-            
-            print(f"Connexion Reussie, Bienvenue {nom} {prenom}  ")
-            print("---------------------------------------------------------------")
-            break
+
+            if bcrypt.checkpw(password, hashed.encode() ):
+                print(f"Connexion Reussie, Bienvenue {nom} {prenom}")
+                print("---------------------------------------------------------------")
+                break
+            else:
+                print("Mot de passe incorrect")
+                print("---------------------------------------------------------------")
+
+        cursor.close()
 
 
 def Interface_user():
@@ -69,19 +78,12 @@ def Interface_user():
            break
         if choix=="2":
             Inscription()
-            connect()
+            
             break
-        elif choix=="3":
-             print("Au revoir")
-             break
+        
         else:
              print("Choix inconnue")
         
-
-
-
-
-
 
 
 def menu():
@@ -312,6 +314,11 @@ def dashboard():
 
 
 #==========================================================================================================================
+
+
+
+
+
 
 
 def main():
