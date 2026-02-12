@@ -16,25 +16,59 @@ if maconnexion.is_connected():
 
 
 def Inscription():
-    
-    nom = input ("Donnez votre nom: ")
-    prenom= input("Donnez votre prenom: ")
-    adresse = input("Donnez votre adresse: ")
-    telephone = input("Donnez votre numero: ")
-    email = input("Donnez votre email: ")
-    password= input("Donnez votre mot de passe: ").encode()
-    hashed = bcrypt.hashpw(password, bcrypt.gensalt(14))
-    if bcrypt.checkpw(password, hashed):
-        print("Felicitations Vous etes bien inscrit")
-        cursor=maconnexion.cursor()
-        query="""Insert into Utilisateurs(nom,prenom,adresse,telephone,email,password) values (%s,%s,%s,%s,%s,%s)"""
-        cursor.execute(query,(nom,prenom,adresse,telephone,email,hashed))
-        maconnexion.commit()    
-        connect()
-    else:
-        print("Inscription Refusee")
+    while True:
+        nom = input ("Donnez votre nom: ")
+        if nom.isalpha() and len(nom) >= 2:
+            break
+        else:
+            print("erreur de saisie: le nom doit etre alphabetique et superieur ou egal a 3 caracteres")
            
-    
+    while True:
+        prenom= input("Donnez votre prenom: ")
+        if prenom.isalpha() and len(prenom) >= 3:
+            break
+        else:    
+            print("erreur de saisie: le prenom doit etre alphabetique et superieur ou egal a 3 caracteres")
+
+    while True:
+        adresse = input("Donnez votre adresse: ")
+        if adresse.isdigit and len(adresse) >=3:
+            break
+        else:
+            print("la longueur de l'adresse doit etre superieur ou egal a 3 caracteres")
+    while True:        
+        telephone = input("Donnez votre numero: ")
+        if telephone.startswith(("77","78","76","70","75")) and len(telephone)==9:
+            break
+        else:
+            print("Saisir un bon numero")
+    while True:
+        email = input("Donnez votre email: ")
+        if  "@" in email and "." in email and " " not in email:
+            break
+        else:
+            print("Donnez un email valide")
+    while True:
+        password= input("Donnez votre mot de passe: ").encode()
+        if len(password)>=4:
+            hashed = bcrypt.hashpw(password, bcrypt.gensalt(14))
+            if bcrypt.checkpw(password, hashed):
+                print("Felicitations Vous etes bien inscrit")
+                cursor=maconnexion.cursor()
+                query="""Insert into Utilisateurs(nom,prenom,adresse,telephone,email,password) values (%s,%s,%s,%s,%s,%s)"""
+                cursor.execute(query,(nom,prenom,adresse,telephone,email,hashed))
+                maconnexion.commit()    
+                connect()
+                break
+            else:
+                print("Inscription Refusee")
+                break
+
+        else:
+            print("Donnez un mot de passe superieur a quatres caracteres")
+        
+            
+
 
 def connect():
   
@@ -72,6 +106,7 @@ def Interface_user():
         print("---------------------------------------------------------------")
         print("1-Pour se connecter") 
         print("2-Pour s'inscrire ") 
+        print("3-Pour quitter")
         choix=input("Donnez votre choix") 
         if choix=="1":
            connect()
